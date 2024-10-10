@@ -14,6 +14,7 @@ def store_record(name, value, record_type, ttl):
         'type': record_type,
         'ttl': ttl
     }
+    print(f"Storing record: {record}")
     with open(RECORD_FILE, 'a') as f:
         f.write(json.dumps(record) + '\n')
 
@@ -32,16 +33,18 @@ def lookup_record(name):
 def handle_request(data, address):
     """Handle UDP request for registration or query."""
     lines = data.decode('utf-8').split('\n')
+    print(f"lines: {lines}")
     if len(lines) >= 2 and lines[0].startswith("TYPE=") and lines[1].startswith("NAME="):
         record_type = lines[0].split('=')[1]
         name = lines[1].split('=')[1]
-
-        if len(lines) == 4 and lines[2].startswith("VALUE=") and lines[3].startswith("TTL="):
+        print(f"lines: {lines}")
+        if len(lines) >= 4 and lines[2].startswith("VALUE=") and lines[3].startswith("TTL="):
+            print(f"lines: {lines}")
             # Registration request
             value = lines[2].split('=')[1]
             ttl = int(lines[3].split('=')[1])
             store_record(name, value, record_type, ttl)
-            response = "Registration successful"
+            response = "Registered successfully"
             print(f"Registered: {name} with IP {value}")
         else:
             # DNS Query request
@@ -72,4 +75,5 @@ print(f"Authoritative Server running on {HOST}:{UDP_PORT}")
 while True:
     data, address = sock.recvfrom(1024)  # Buffer size of 1024 bytes
     print(f"Received data from {address}")
+    print(f"handle_request")
     handle_request(data, address)

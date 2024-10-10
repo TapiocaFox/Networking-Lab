@@ -10,6 +10,8 @@ RUN groupadd -g 799 nyu && \
 # Set up a working folder and install the pre-reqs
 WORKDIR /app
 
+RUN touch /app/dns_records.txt && chown nyu:nyu /app/dns_records.txt
+
 RUN pip install Flask
 
 USER nyu

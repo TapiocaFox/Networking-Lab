@@ -10,14 +10,20 @@ UDP_PORT = 53533
 def register_with_as(hostname, ip, as_ip, as_port):
     """Register the hostname with the Authoritative Server (AS) via UDP."""
     message = f"TYPE=A\nNAME={hostname}\nVALUE={ip}\nTTL=10\n"
+    response_data = ""
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.settimeout(5) 
         sock.sendto(message.encode('utf-8'), (as_ip, int(as_port)))
+        data, _ = sock.recvfrom(1024)
+        response_data = data.decode('utf-8')
         print(f"Sent registration message to AS: {message}")
     except Exception as e:
         print(f"Error during registration: {e}")
+        response_data = f"Error during registration: {e}"
     finally:
         sock.close()
+        return response_data
 
 @app.route('/register', methods=['PUT'])
 def register():
@@ -33,8 +39,8 @@ def register():
         return jsonify({'error': 'Missing parameters'}), 400
 
     # Register with AS
-    register_with_as(hostname, ip, as_ip, as_port)
-    return jsonify({'message': 'Registered successfully'}), 201
+    message = register_with_as(hostname, ip, as_ip, as_port)
+    return jsonify({'message': message}), 201
 
 @app.route('/fibonacci', methods=['GET'])
 def fibonacci():
